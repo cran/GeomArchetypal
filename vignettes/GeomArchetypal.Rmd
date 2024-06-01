@@ -1,0 +1,207 @@
+---
+title: "Geometrical Archetypal Analysis: One Step Beyond the Current View"
+author:
+  - Demetris T. Christopoulos
+  - National and Kapodistrian University of Athens
+  - https://orcid.org/0009-0008-6436-095X
+  - dchristop@econ.uoa.gr
+date: "2024/05/30"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Introduction to GeomArchetypal Package}
+  %\VignetteEncoding{UTF-8}
+header-includes:
+  - \renewcommand{\and}{\\}
+---
+
+
+```{css, echo=FALSE}
+    body .main-container {
+      max-width: 1024px !important;
+      width: 1024px !important;
+    }
+    body {
+      max-width: 1024px !important;
+    }
+```
+
+```{r setup, include=FALSE}
+oldpar <- par(no.readonly = TRUE) 
+oldoptions <- options()
+library(GeomArchetypal)
+library(knitr)
+library(rmarkdown)
+knitr::opts_chunk$set(echo = TRUE)
+options(max.width = 1000)
+options(max.print = 100000)
+write_matex2 <- function(x) {
+  begin <- "\\begin{matrix}"
+  end <- "\\end{matrix}"
+  X <-
+    apply(x, 1, function(x) {
+      paste(
+        paste(x, collapse = "&"),
+        "\\\\"
+      )
+    })
+  paste(c(begin, X, end), collapse = "")
+}
+m3=expand.grid(c('Y1,min','Y1,max'),c('Y2,min','Y2,max'),c('Y3,min','Y3,max'))
+```
+
+## Geometrical Archetypal Analysis (GAA)
+
+At the traditional Archetypal Analysis (AA) [1] we have a data frame $df$ which is a matrix $Y$ with dimension $n \times d$,
+with n the number of observations (rows) and d the number of variables (columns) or the dimension of the relevant Linear Space $R^d$.
+
+The output of our AA algorithm which has been implemented at the R Package "archetypal" computes the matrices $A$, $B$ such that:
+$$
+Y\sim\,A\,B\,Y
+$$
+or if we want to be more strict our $kappas\times\,d$ matrix of archetypes $B\,Y$ is such that next squared *Frobenius* norm is minimum
+$$
+SSE=\|Y-A\,B\,Y \|^2 = minimum
+$$
+$A$ ($n\times\,kappas$) is a are row stochastic matrix and $B$ ($kappas\times\,n$ ) is a column stochastic one.
+
+We also define the Variance Explained as next:
+$$
+varexpl=\frac{SST-SSE}{SST}
+$$
+with SST being the total sum of squares for all elements of matrix $Y$.
+
+It is a suitable modification of $PCHA$ algorithm, see [2], [3], which now uses the data frames without transposing them
+and it has full control to all external and internal parameters of it.
+
+But there are many disadvantages at this route:
+
+* The number of archetypes ("$kappas$") is unknown
+* The choice of $kappas$ by using the SSE plot is a very questionable process:
+  + The elbow or knee point usually is located at the center of the SSE-kappas curve
+  + If you test more kappas, then it increases 
+  
+
+*But what really stands for the concept of archetypes?*
+
+We know that archetypes lie on the outer bound of the Convex Hull that covers all our 
+data points.
+
+Now arise next questions:
+
+* How many points in the vector space $R^d$ are needed in order to create a minimal 
+Convex Hull for them which can be called "Archetypal Spanning Convex Hull"? 
+  + The answer is $kappas = d + 1$
+ 
+* If we take the above as the number of archetypes then: 
+  + What is the percentage of our data points that are covered by that hull?
+  + Are we satisfied with a value of 1%?
+  + For social sciences data sets we observe an almost ellipsoidal distribution
+  + That means we need many archetypes for an acceptable data coverage
+  + What should we do in order to increase that data coverage?
+
+The solution to all the above problems is *Geometrical Archetypal Analysis (GAA)*, see also the pdf version [4].
+
+Given the data frame $df$ and its correspondent matrix $Y\in R^d$ we follow next steps:
+
+1. We find the minimum $Y_{j(1)}$ and maximum $Y_{j(\nu)}$ values for all variables $Y_j,j=1,...,d$
+2. We take the Cartesian Product:
+$$
+\{Y_{1(1)},Y_{1(\nu)}\}\times\{Y_{2(1)},Y_{2(\nu)}\}\times\ldots\times\{Y_{d(1)},Y_{d(\nu)}\}
+$$
+3. We define the $2^d$ vectors as the *Archetypal Grid*, 
+for example if $d=3$ we find the 8 rows of next matrix:
+$$
+`r write_matex2(m3)`
+$$ 
+4. We create a new data frame $dg$ with the *Archetypal Grid* as the first rows and the initial data frame "df" as the rest ones
+5. We fix the $BY$ matrix of archetypes to be the first $2^d$ rows of $dg$
+6. We iteratively compute the $A$-matrix of the $Y\sim\,A\,B\,Y\,$ decomposition
+7. We collect the $\{2^{d}+1,\ldots\,n\}$ rows of that $A$-matrix: these are the 
+compositions of all initial data rows as convex combinations of Grid Archetypes
+
+Since we are sure that our archetypes cover the 100% of the data points, then we don't care about their 
+number so much, since what actually matters is the compositions for each point.
+
+
+## Grid Archetypal 
+
+We create a set of random 3D data points and then we compute the *Grid Archetypal Analysis*.
+
+```{r gaa1, echo=TRUE}
+library(GeomArchetypal)
+# Create random data
+set.seed(20140519)
+df=matrix(runif(300) , nrow = 100, ncol=3) 
+colnames(df)=c("x","y","z")
+# Grid Archetypal
+gaa=grid_archetypal(df, diag_less = 1e-6, niter = 50, verbose = FALSE)
+summary(gaa)
+```
+If we plot the data points and the archetypes we observe that the 
+*Archetypal Spanning Convex Hull* covers all our points, 
+a fact that can be checked by using the function *points_inside_convex_hull()*:
+
+```{r gaa2, echo=FALSE,out.width='75%', fig.align='center',fig.width=10, fig.height=6, echo=TRUE}
+plot(gaa)
+points_inside_convex_hull(df, gaa$grid)
+```
+
+## Closer Grid Archetypal
+
+For the same data set as before we want to set as archetypes the 
+Closer to the Grid Archetypes just because we'd like our archetypes to 
+belong to the data set.
+
+
+```{r cga1, echo=TRUE}
+# Closer Grid Archetypal
+cga=closer_grid_archetypal(df,diag_less = 1e-3, niter = 70, verbose = FALSE)
+summary(cga)
+plot(cga)
+```
+
+What is the percentage of data coverage for the *Closer Grid Archetypes*?
+
+```{r cga2, echo=TRUE}
+pc=points_inside_convex_hull(df,cga$aa$BY)
+print(pc)
+```
+The `r cat(pc," %")` is a relatively high percentage compared to the usually 
+very low values of less than 10%, especially if we seek for a small number of archetypes.
+
+
+## Fast Archetypal
+
+If we decide that we'll take a specific set of rows as archetypes, then we can use 
+the function *fast-archetypal()* to compute the $A$-matrix of convex coefficients for the rest 
+of data points.
+
+It is the generic function that is used from both *grid_archetypal()* and *closer_grid_archetypal()*
+for their main computations.
+
+Here we can use the rows we have found just before as the rows for the archetypes.
+
+
+```{r fa1, echo=TRUE}
+# Fast Archetypal
+fa=fast_archetypal(df, irows = cga$grid_rows, diag_less = 1e-6,
+                   niter = 100, verbose = FALSE)
+summary(fa)
+plot(fa)
+par(oldpar)
+options(oldoptions)
+```
+
+As it was expected the results are totally identical with the previously found ones.
+
+## References
+
+[1] Cutler, A., & Breiman, L. (1994). Archetypal Analysis. Technometrics, 36(4), 338–347. https://doi.org/10.1080/00401706.1994.10485840
+
+[2] M Morup and LK Hansen, "Archetypal analysis for machine learning and data mining", Neurocomputing (Elsevier, 2012). https://doi.org/10.1016/j.neucom.2011.06.033.
+
+[3] Source: https://mortenmorup.dk/?page_id=2 , last accessed 2024-03-09
+
+[4] Christopoulos, DT, (2024) "Geometrical Archetypal Analysis: One Step Beyond the Current View", 
+http://dx.doi.org/10.13140/RG.2.2.14030.88642 .
