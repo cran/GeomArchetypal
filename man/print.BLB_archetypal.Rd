@@ -22,6 +22,7 @@ Given an object of class BLB_archetypal all the results are printed in explanato
 }
 \value{No return value, called for side effects}
 \examples{
+{\donttest{
 # Load package
 library(GeomArchetypal)
 # Load data
@@ -38,5 +39,7 @@ test <- BLB_archetypal(df = df,
                         diag_less = 1e-2)
 # Print the results of the class "BLB_archetypal" object:
 print(test)
+}
+}
 }
 

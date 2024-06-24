@@ -22,6 +22,7 @@ Given an object of class BLB_archetypal all the results are being summarized in 
 }
 \value{No return value, called for side effects}
 \examples{
+{\donttest{
 # Load package
 library(GeomArchetypal)
 # Load data
@@ -38,5 +39,7 @@ test <- BLB_archetypal(df = df,
                         diag_less = 1e-2)
 # Summarize the results of the "BLB_archetypal" class object:
 summary(test)
+}
+}
 }
 
