@@ -1,8 +1,8 @@
 Package: GeomArchetypal
 Type: Package
 Title: Finds the Geometrical Archetypal Analysis of a Data Frame
-Version: 1.0.2
-Date: 2024-06-24
+Version: 1.0.3
+Date: 2024-10-20
 Authors@R: c(
              person("Demetris", "Christopoulos",email = "dchristop@econ.uoa.gr",role = c("aut", "cre","cph")),
              person("David", "Midgley", email = "david.midgley@insead.edu", role = c("ctb","cph")),
@@ -34,6 +34,6 @@ Author: Demetris Christopoulos [aut, cre, cph],
   The University of Queensland Australia [fnd]
 NeedsCompilation: no
 Language: en-US
-Packaged: 2024-06-24 08:11:06 UTC; demetris_ws
+Packaged: 2024-10-20 09:51:51 UTC; demetris_ws
 Repository: CRAN
-Date/Publication: 2024-06-24 09:00:02 UTC
+Date/Publication: 2024-10-20 10:50:09 UTC

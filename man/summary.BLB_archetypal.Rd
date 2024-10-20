@@ -23,20 +23,29 @@ Given an object of class BLB_archetypal all the results are being summarized in 
 \value{No return value, called for side effects}
 \examples{
 {\donttest{
-# Load package
 library(GeomArchetypal)
-# Load data
+library(mirai)
+library(parallel)
 data("gallupGPS6")
-# draw a small sample
-set.seed(2024)
-df <- gallupGPS6[sample(1:nrow(gallupGPS6),35000,replace = FALSE),]
-# invent a grouping variable
-df$grp <- cut(df$risktaking, breaks = 2)
-test <- BLB_archetypal(df = df, 
-                        group_var = "grp",
-                        aa_var = c("patience","risktaking","trust"), 
-                        n = 1, r = 2, n_core = 1,
-                        diag_less = 1e-2)
+aa_var <- c("patience","risktaking","trust") # variables for archetypal analysis
+# define the 2^3 archetypes from minimums and maximums of the data
+min_var <- apply(gallupGPS6[, aa_var], 2, min, na.rm = TRUE)
+max_var <- apply(gallupGPS6[, aa_var], 2, max, na.rm = TRUE)
+temp <- as.data.frame.matrix(rbind(min_var, max_var))
+colnames(temp) <- aa_var
+list_minmax <- apply(temp, 2, as.list)
+rm(temp, min_var, max_var)
+arches <- data.matrix(do.call(expand.grid, list_minmax))
+arches <- as.data.frame(arches)
+rm(list_minmax)
+# apply BLB archetypal for a minimal example
+test <- BLB_archetypal(df = gallupGPS6, 
+                       ss_size = 50, 
+                       bs_size = nrow(gallupGPS6),
+                       arches = arches, 
+                       use_seed = 2024,
+                       n = 1, r = 2, n_core = 1,
+                       diag_less = 1e-2)
 # Summarize the results of the "BLB_archetypal" class object:
 summary(test)
 }
